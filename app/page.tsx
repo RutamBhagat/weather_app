@@ -11,7 +11,7 @@ export default function Home() {
           <div className="flex items-center border-0 border-b-2">
             <h3 className="text-lg text-[#43aefc] font-semibold px-6 py-3 w-full">Weather App</h3>
           </div>
-          <form className="space-y-5 p-6">
+          <div className="space-y-5 p-6">
             <Search />
             <div className="relative">
               <span className="block w-full h-px bg-gray-300"></span>
@@ -20,7 +20,7 @@ export default function Home() {
             <button className="w-full px-4 py-2 text-white font-medium bg-[#43aefc] hover:bg-[#1672b4] rounded-md duration-150">
               Get Device Location
             </button>
-          </form>
+          </div>
         </div>
       </article>
     </div>
