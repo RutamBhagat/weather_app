@@ -12,6 +12,7 @@ export type RootObject = {
   visibility: number;
   weather: Weather[];
   wind: Wind;
+  message?: string;
 };
 
 type Clouds = {
