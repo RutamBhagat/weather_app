@@ -1,61 +1,7 @@
 import Link from "next/link";
 import React from "react";
 import axios from "axios";
-
-type RootObject = {
-  base: string;
-  clouds: Clouds;
-  cod: number;
-  coord: Coord;
-  dt: number;
-  id: number;
-  main: Main;
-  name: string;
-  sys: Sys;
-  timezone: number;
-  visibility: number;
-  weather: Weather[];
-  wind: Wind;
-};
-
-type Clouds = {
-  all: number;
-};
-
-type Coord = {
-  lat: number;
-  lon: number;
-};
-
-type Main = {
-  feels_like: number;
-  humidity: number;
-  pressure: number;
-  temp: number;
-  temp_max: number;
-  temp_min: number;
-};
-
-type Sys = {
-  country: string;
-  id: number;
-  sunrise: number;
-  sunset: number;
-  type: number;
-};
-
-type Weather = {
-  description: string;
-  icon: string;
-  id: number;
-  main: string;
-};
-
-type Wind = {
-  deg: number;
-  gust: number;
-  speed: number;
-};
+import { RootObject } from "./weatherTypes";
 
 const getWeatherResults = async (city: string) => {
   try {
@@ -68,8 +14,25 @@ const getWeatherResults = async (city: string) => {
   }
 };
 
-export default async function index({ searchParams }: { searchParams: { city: string } }) {
-  const results: RootObject | null = await getWeatherResults(searchParams.city);
+const getWeatherResultsByLatAndLon = async (lat: string, lon: string) => {
+  try {
+    const result = await axios.get<RootObject>(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.OPEN_WEATHER_MAP_APIKEY}`
+    );
+    return result.data;
+  } catch (error) {
+    return null;
+  }
+};
+
+export default async function index({ searchParams }: { searchParams: { city?: string; lat?: string; lon?: string } }) {
+  let results: RootObject | null = null;
+
+  if (searchParams.city) {
+    results = await getWeatherResults(searchParams.city);
+  } else if (searchParams.lat && searchParams.lon) {
+    results = await getWeatherResultsByLatAndLon(searchParams.lat, searchParams.lon);
+  }
 
   if (!results) {
     return <div>Something went wrong</div>;
@@ -77,7 +40,7 @@ export default async function index({ searchParams }: { searchParams: { city: st
 
   return (
     <div className="bg-[#43aefc] w-full min-h-screen flex justify-center items-center">
-      <article className="max-w-sm w-full shadow-lg duration-300 hover:shadow-sm flex-none" key={"key"}>
+      <article className="max-w-sm w-full shadow-lg duration-300 hover:shadow-sm flex-none">
         <div className="bg-white shadow rounded-lg min-h-[450px]">
           <div className="flex items-center px-5 gap-3 border-0 border-b-2 text-[#43aefc]">
             <Link href="/">
@@ -88,19 +51,17 @@ export default async function index({ searchParams }: { searchParams: { city: st
             <h3 className="text-lg font-semibold py-3 w-full">Weather App</h3>
           </div>
           <div className="p-5 pb-3">
-            <div className="flex justify-center items-center">
+            <div className="flex justify-center items-center h-[200px]">
               <img
                 src={`http://openweathermap.org/img/wn/${results.weather[0].icon}@4x.png`}
                 alt={`${results?.weather[0].main} weather`}
               />
             </div>
             <div className="px-5">
-              <h5 className="my-2 text-center text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
+              <h5 className="my-2 text-center text-5xl font-bold tracking-tight text-gray-900">
                 {results.main.temp} °C
               </h5>
-              <p className="my-3 text-center font-normal text-gray-700 dark:text-gray-400">
-                {results?.weather[0].main}
-              </p>
+              <p className="my-3 text-center font-normal text-gray-700">{results?.weather[0].main}</p>
               <div className="flex items-center justify-center text-gray-700 h-6 gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
                   <path
@@ -108,7 +69,7 @@ export default async function index({ searchParams }: { searchParams: { city: st
                     d="M12 12q.825 0 1.413-.588T14 10q0-.825-.588-1.413T12 8q-.825 0-1.413.588T10 10q0 .825.588 1.413T12 12Zm0 7.35q3.05-2.8 4.525-5.088T18 10.2q0-2.725-1.738-4.462T12 4Q9.475 4 7.737 5.738T6 10.2q0 1.775 1.475 4.063T12 19.35ZM12 22q-4.025-3.425-6.012-6.362T4 10.2q0-3.75 2.413-5.975T12 2q3.175 0 5.588 2.225T20 10.2q0 2.5-1.988 5.438T12 22Zm0-11.8Z"
                   />
                 </svg>
-                <p className="my-3 text-center font-normal dark:text-gray-400">
+                <p className="my-3 text-center font-normal">
                   {results?.name}, {results?.sys?.country}
                 </p>
               </div>
@@ -128,10 +89,10 @@ export default async function index({ searchParams }: { searchParams: { city: st
                 <path d="M1 2.5a2.5 2.5 0 0 1 5 0v7.55a3.5 3.5 0 1 1-5 0V2.5zM3.5 1A1.5 1.5 0 0 0 2 2.5v7.987l-.167.15a2.5 2.5 0 1 0 3.333 0L5 10.486V2.5A1.5 1.5 0 0 0 3.5 1zm5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5zm4.243 1.757a.5.5 0 0 1 0 .707l-.707.708a.5.5 0 1 1-.708-.708l.708-.707a.5.5 0 0 1 .707 0zM8 5.5a.5.5 0 0 1 .5-.5 3 3 0 1 1 0 6 .5.5 0 0 1 0-1 2 2 0 0 0 0-4 .5.5 0 0 1-.5-.5zM12.5 8a.5.5 0 0 1 .5-.5h1a.5.5 0 1 1 0 1h-1a.5.5 0 0 1-.5-.5zm-1.172 2.828a.5.5 0 0 1 .708 0l.707.708a.5.5 0 0 1-.707.707l-.708-.707a.5.5 0 0 1 0-.708zM8.5 12a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5z" />
               </svg>
               <div className="flex flex-col py-3 px-0">
-                <h5 className="text-start text-xl font-medium tracking-tight text-gray-900 dark:text-white">
+                <h5 className="text-start text-xl font-medium tracking-tight text-gray-900 ">
                   {results?.main?.feels_like} °C
                 </h5>
-                <p className="text-start font-normal text-sm dark:text-gray-400">Feels like</p>
+                <p className="text-start font-normal text-sm">Feels like</p>
               </div>
             </div>
             <div className="flex justify-center items-center w-1/2 border border-t-2 border-b-0 border-r-0">
@@ -148,10 +109,10 @@ export default async function index({ searchParams }: { searchParams: { city: st
                 />
               </svg>
               <div className="flex flex-col py-3 px-0">
-                <h5 className="text-start text-xl font-medium tracking-tight text-gray-900 dark:text-white">
+                <h5 className="text-start text-xl font-medium tracking-tight text-gray-900">
                   {results?.main?.humidity} %
                 </h5>
-                <p className="text-start font-normal text-sm dark:text-gray-400">Humidity</p>
+                <p className="text-start font-normal text-sm">Humidity</p>
               </div>
             </div>
           </div>
