@@ -3,21 +3,10 @@ import React from "react";
 import axios from "axios";
 import { RootObject } from "./weatherTypes";
 
-const getWeatherResults = async (city: string) => {
+const getWeatherResults = async (city: string, lat: string, lon: string) => {
   try {
     const result = await axios.get<RootObject>(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${process.env.OPEN_WEATHER_MAP_APIKEY}`
-    );
-    return result.data;
-  } catch (error) {
-    return null;
-  }
-};
-
-const getWeatherResultsByLatAndLon = async (lat: string, lon: string) => {
-  try {
-    const result = await axios.get<RootObject>(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.OPEN_WEATHER_MAP_APIKEY}`
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&lat=${lat}&lon=${lon}&units=metric&appid=${process.env.OPEN_WEATHER_MAP_APIKEY}`
     );
     return result.data;
   } catch (error) {
@@ -26,13 +15,11 @@ const getWeatherResultsByLatAndLon = async (lat: string, lon: string) => {
 };
 
 export default async function index({ searchParams }: { searchParams: { city?: string; lat?: string; lon?: string } }) {
-  let results: RootObject | null = null;
-
-  if (searchParams.city) {
-    results = await getWeatherResults(searchParams.city);
-  } else if (searchParams.lat && searchParams.lon) {
-    results = await getWeatherResultsByLatAndLon(searchParams.lat, searchParams.lon);
-  }
+  let results: RootObject | null = await getWeatherResults(
+    searchParams.city || "",
+    searchParams.lat || "",
+    searchParams.lon || ""
+  );
 
   if (!results) {
     return <div>Something went wrong</div>;
