@@ -2,9 +2,64 @@ import Link from "next/link";
 import React from "react";
 import axios from "axios";
 
+type RootObject = {
+  base: string;
+  clouds: Clouds;
+  cod: number;
+  coord: Coord;
+  dt: number;
+  id: number;
+  main: Main;
+  name: string;
+  sys: Sys;
+  timezone: number;
+  visibility: number;
+  weather: Weather[];
+  wind: Wind;
+};
+
+type Clouds = {
+  all: number;
+};
+
+type Coord = {
+  lat: number;
+  lon: number;
+};
+
+type Main = {
+  feels_like: number;
+  humidity: number;
+  pressure: number;
+  temp: number;
+  temp_max: number;
+  temp_min: number;
+};
+
+type Sys = {
+  country: string;
+  id: number;
+  sunrise: number;
+  sunset: number;
+  type: number;
+};
+
+type Weather = {
+  description: string;
+  icon: string;
+  id: number;
+  main: string;
+};
+
+type Wind = {
+  deg: number;
+  gust: number;
+  speed: number;
+};
+
 const getWeatherResults = async (city: string) => {
   try {
-    const result = await axios.get(
+    const result = await axios.get<RootObject>(
       `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${process.env.OPEN_WEATHER_MAP_APIKEY}`
     );
     return result.data;
@@ -14,9 +69,7 @@ const getWeatherResults = async (city: string) => {
 };
 
 export default async function index({ searchParams }: { searchParams: { city: string } }) {
-  console.log("searchParams.city", searchParams.city);
-  const results: any = await getWeatherResults(searchParams.city);
-  console.log("results", results);
+  const results: RootObject | null = await getWeatherResults(searchParams.city);
 
   if (!results) {
     return <div>Something went wrong</div>;
@@ -35,13 +88,15 @@ export default async function index({ searchParams }: { searchParams: { city: st
             <h3 className="text-lg font-semibold py-3 w-full">Weather App</h3>
           </div>
           <div className="space-y-5 p-6">
-            <h3>{results?.weather?.main}</h3>
-            <p>Feels like {results?.main?.feels_like}°C</p>
+            <h2>{results.main.temp}</h2>
+            <h3>{results?.weather[0].main}</h3>
             <i>
               <p>
                 {results?.name}, {results?.sys?.country}
               </p>
             </i>
+            <p>{results?.main?.feels_like}°C Feels like</p>
+            <p>{results?.main?.humidity}% Humidity</p>
           </div>
         </div>
       </article>
